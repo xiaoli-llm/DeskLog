@@ -1,0 +1,869 @@
+/* Claude 风格全局样式 - 温暖优雅的设计 */
+
+/* CSS 变量 - Claude 配色方案 */
+:root {
+  /* 主色调 - 温暖的琥珀/橙棕色 */
+  --claude-primary: #D97706;
+  --claude-primary-hover: #B45309;
+  --claude-primary-light: #FEF3C7;
+  --claude-primary-bg: #FFFBEB;
+
+  /* 背景色 - 柔和的米白 */
+  --claude-bg: #FAF9F6;
+  --claude-bg-secondary: #F5F3EF;
+  --claude-bg-tertiary: #EBE8E1;
+  --claude-card-bg: #FFFFFF;
+
+  /* 文字颜色 */
+  --claude-text-primary: #1C1917;
+  --claude-text-secondary: #57534E;
+  --claude-text-tertiary: #A8A29E;
+  --claude-text-inverse: #FAF9F6;
+
+  /* 边框颜色 */
+  --claude-border: #E7E5E4;
+  --claude-border-hover: #D6D3D1;
+
+  /* 状态颜色 */
+  --claude-success: #16A34A;
+  --claude-success-bg: #F0FDF4;
+  --claude-warning: #D97706;
+  --claude-warning-bg: #FFFBEB;
+  --claude-error: #DC2626;
+  --claude-error-bg: #FEF2F2;
+  --claude-info: #2563EB;
+  --claude-info-bg: #EFF6FF;
+
+  /* 阴影 */
+  --claude-shadow-sm: 0 1px 2px 0 rgba(28, 25, 23, 0.05);
+  --claude-shadow: 0 1px 3px 0 rgba(28, 25, 23, 0.1), 0 1px 2px -1px rgba(28, 25, 23, 0.1);
+  --claude-shadow-md: 0 4px 6px -1px rgba(28, 25, 23, 0.1), 0 2px 4px -2px rgba(28, 25, 23, 0.1);
+  --claude-shadow-lg: 0 10px 15px -3px rgba(28, 25, 23, 0.1), 0 4px 6px -4px rgba(28, 25, 23, 0.1);
+
+  /* 圆角 */
+  --claude-radius-sm: 6px;
+  --claude-radius: 8px;
+  --claude-radius-md: 12px;
+  --claude-radius-lg: 16px;
+  --claude-radius-xl: 24px;
+
+  /* 间距 */
+  --claude-space-1: 4px;
+  --claude-space-2: 8px;
+  --claude-space-3: 12px;
+  --claude-space-4: 16px;
+  --claude-space-5: 20px;
+  --claude-space-6: 24px;
+  --claude-space-8: 32px;
+  --claude-space-10: 40px;
+  --claude-space-12: 48px;
+}
+
+/* 全局重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--claude-bg);
+  color: var(--claude-text-primary);
+  line-height: 1.6;
+}
+
+/* 自定义滚动条 - Claude 风格 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--claude-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--claude-text-tertiary);
+}
+
+/* ==================== Ant Design 主题覆盖 ==================== */
+
+/* 按钮样式 */
+.ant-btn {
+  border-radius: var(--claude-radius) !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+}
+
+.ant-btn-primary {
+  background: var(--claude-primary) !important;
+  border-color: var(--claude-primary) !important;
+  box-shadow: none !important;
+}
+
+.ant-btn-primary:hover {
+  background: var(--claude-primary-hover) !important;
+  border-color: var(--claude-primary-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: var(--claude-shadow-md) !important;
+}
+
+.ant-btn-default {
+  background: var(--claude-card-bg) !important;
+  border-color: var(--claude-border) !important;
+  color: var(--claude-text-primary) !important;
+}
+
+.ant-btn-default:hover {
+  border-color: var(--claude-primary) !important;
+  color: var(--claude-primary) !important;
+}
+
+/* 卡片样式 */
+.ant-card {
+  background: var(--claude-card-bg) !important;
+  border: 1px solid var(--claude-border) !important;
+  border-radius: var(--claude-radius-md) !important;
+  box-shadow: var(--claude-shadow-sm) !important;
+  transition: all 0.3s ease !important;
+}
+
+.ant-card:hover {
+  box-shadow: var(--claude-shadow-md) !important;
+  border-color: var(--claude-border-hover) !important;
+}
+
+.ant-card-head {
+  border-bottom: 1px solid var(--claude-border) !important;
+  padding: var(--claude-space-4) var(--claude-space-6) !important;
+}
+
+.ant-card-body {
+  padding: var(--claude-space-6) !important;
+}
+
+/* 输入框样式 */
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-select-selector,
+.ant-picker {
+  border-radius: var(--claude-radius) !important;
+  border-color: var(--claude-border) !important;
+  transition: all 0.2s ease !important;
+}
+
+.ant-input:hover,
+.ant-input-affix-wrapper:hover,
+.ant-select-selector:hover,
+.ant-picker:hover {
+  border-color: var(--claude-primary) !important;
+}
+
+.ant-input:focus,
+.ant-input-affix-wrapper-focused,
+.ant-select-focused .ant-select-selector,
+.ant-picker-focused {
+  border-color: var(--claude-primary) !important;
+  box-shadow: 0 0 0 2px var(--claude-primary-light) !important;
+}
+
+/* 标签样式 */
+.ant-tag {
+  border-radius: var(--claude-radius-sm) !important;
+  font-weight: 500 !important;
+  border: none !important;
+}
+
+/* 表格样式 */
+.ant-table {
+  border-radius: var(--claude-radius-md) !important;
+  overflow: hidden;
+}
+
+.ant-table-thead > tr > th {
+  background: var(--claude-bg-secondary) !important;
+  font-weight: 600 !important;
+  color: var(--claude-text-secondary) !important;
+  border-bottom: 1px solid var(--claude-border) !important;
+}
+
+.ant-table-tbody > tr > td {
+  border-bottom: 1px solid var(--claude-border) !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: var(--claude-primary-bg) !important;
+}
+
+/* 进度条样式 */
+.ant-progress-bg {
+  background: var(--claude-primary) !important;
+}
+
+.ant-progress-success-bg {
+  background: var(--claude-success) !important;
+}
+
+/* 菜单样式 */
+.ant-menu {
+  background: transparent !important;
+  border-right: none !important;
+}
+
+.ant-menu-item {
+  border-radius: var(--claude-radius) !important;
+  margin: var(--claude-space-1) var(--claude-space-2) !important;
+  transition: all 0.2s ease !important;
+}
+
+.ant-menu-item:hover {
+  background: var(--claude-primary-light) !important;
+  color: var(--claude-primary) !important;
+}
+
+.ant-menu-item-selected {
+  background: var(--claude-primary-light) !important;
+  color: var(--claude-primary) !important;
+  font-weight: 500 !important;
+}
+
+/* 复选框样式 */
+.ant-checkbox-checked .ant-checkbox-inner {
+  background: var(--claude-primary) !important;
+  border-color: var(--claude-primary) !important;
+}
+
+/* 下拉菜单样式 */
+.ant-dropdown-menu {
+  border-radius: var(--claude-radius-md) !important;
+  box-shadow: var(--claude-shadow-lg) !important;
+  border: 1px solid var(--claude-border) !important;
+}
+
+.ant-dropdown-menu-item {
+  border-radius: var(--claude-radius-sm) !important;
+  margin: var(--claude-space-1) !important;
+}
+
+.ant-dropdown-menu-item:hover {
+  background: var(--claude-primary-light) !important;
+}
+
+/* 模态框样式 */
+.ant-modal-content {
+  border-radius: var(--claude-radius-lg) !important;
+  box-shadow: var(--claude-shadow-lg) !important;
+}
+
+.ant-modal-header {
+  border-bottom: 1px solid var(--claude-border) !important;
+  padding: var(--claude-space-6) !important;
+}
+
+.ant-modal-body {
+  padding: var(--claude-space-6) !important;
+}
+
+.ant-modal-footer {
+  border-top: 1px solid var(--claude-border) !important;
+  padding: var(--claude-space-4) var(--claude-space-6) !important;
+}
+
+/* 统计数字样式 */
+.ant-statistic-content {
+  color: var(--claude-text-primary) !important;
+}
+
+.ant-statistic-title {
+  color: var(--claude-text-secondary) !important;
+  font-weight: 500 !important;
+}
+
+/* ==================== 自定义组件样式 ==================== */
+
+/* 布局 */
+.app-layout {
+  min-height: 100vh;
+  background: var(--claude-bg);
+}
+
+.app-sider {
+  background: var(--claude-card-bg) !important;
+  border-right: 1px solid var(--claude-border) !important;
+  box-shadow: var(--claude-shadow-sm) !important;
+}
+
+.app-header {
+  background: var(--claude-card-bg) !important;
+  border-bottom: 1px solid var(--claude-border) !important;
+  box-shadow: var(--claude-shadow-sm) !important;
+  padding: 0 var(--claude-space-6) !important;
+}
+
+.app-content {
+  padding: var(--claude-space-6) !important;
+  background: var(--claude-bg) !important;
+  min-height: calc(100vh - 64px);
+}
+
+/* Logo 区域 */
+.app-logo {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--claude-space-3);
+  border-bottom: 1px solid var(--claude-border);
+  padding: 0 var(--claude-space-4);
+}
+
+.app-logo-icon {
+  font-size: 24px;
+  color: var(--claude-primary);
+}
+
+.app-logo-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--claude-text-primary);
+  letter-spacing: -0.5px;
+}
+
+/* 页面标题 */
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--claude-text-primary);
+  margin-bottom: var(--claude-space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--claude-space-3);
+}
+
+.page-title-icon {
+  color: var(--claude-primary);
+}
+
+/* 统计卡片 */
+.stat-card {
+  background: var(--claude-card-bg);
+  border: 1px solid var(--claude-border);
+  border-radius: var(--claude-radius-md);
+  padding: var(--claude-space-5);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  border-color: var(--claude-primary);
+  box-shadow: var(--claude-shadow-md);
+  transform: translateY(-2px);
+}
+
+.stat-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--claude-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-bottom: var(--claude-space-3);
+}
+
+.stat-card-icon.primary {
+  background: var(--claude-primary-light);
+  color: var(--claude-primary);
+}
+
+.stat-card-icon.success {
+  background: var(--claude-success-bg);
+  color: var(--claude-success);
+}
+
+.stat-card-icon.warning {
+  background: var(--claude-warning-bg);
+  color: var(--claude-warning);
+}
+
+.stat-card-icon.error {
+  background: var(--claude-error-bg);
+  color: var(--claude-error);
+}
+
+.stat-card-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--claude-text-primary);
+  line-height: 1.2;
+}
+
+.stat-card-label {
+  font-size: 14px;
+  color: var(--claude-text-secondary);
+  margin-top: var(--claude-space-1);
+}
+
+/* 任务列表项 */
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: var(--claude-space-3);
+  padding: var(--claude-space-3) var(--claude-space-4);
+  border-radius: var(--claude-radius);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.task-item:hover {
+  background: var(--claude-primary-bg);
+}
+
+.task-item.completed {
+  opacity: 0.6;
+}
+
+.task-item.completed .task-title {
+  text-decoration: line-through;
+  color: var(--claude-text-tertiary);
+}
+
+.task-title {
+  flex: 1;
+  color: var(--claude-text-primary);
+  font-weight: 500;
+}
+
+/* 项目卡片 */
+.project-card {
+  background: var(--claude-card-bg);
+  border: 1px solid var(--claude-border);
+  border-radius: var(--claude-radius-md);
+  padding: var(--claude-space-5);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.project-card:hover {
+  border-color: var(--claude-primary);
+  box-shadow: var(--claude-shadow-md);
+  transform: translateY(-2px);
+}
+
+.project-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--claude-space-3);
+  margin-bottom: var(--claude-space-4);
+}
+
+.project-card-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.project-card-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--claude-text-primary);
+}
+
+.project-card-desc {
+  font-size: 14px;
+  color: var(--claude-text-secondary);
+  margin-bottom: var(--claude-space-4);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.project-card-stats {
+  display: flex;
+  gap: var(--claude-space-4);
+  padding-top: var(--claude-space-4);
+  border-top: 1px solid var(--claude-border);
+}
+
+.project-card-stat {
+  display: flex;
+  align-items: center;
+  gap: var(--claude-space-2);
+  font-size: 13px;
+  color: var(--claude-text-secondary);
+}
+
+.project-card-stat-value {
+  font-weight: 600;
+  color: var(--claude-text-primary);
+}
+
+/* 心情选择器 */
+.mood-selector {
+  display: flex;
+  gap: var(--claude-space-4);
+}
+
+.mood-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--claude-bg-secondary);
+  border: 2px solid transparent;
+}
+
+.mood-btn:hover {
+  transform: scale(1.1);
+  background: var(--claude-primary-light);
+}
+
+.mood-btn.active {
+  border-color: var(--claude-primary);
+  background: var(--claude-primary-light);
+  transform: scale(1.15);
+}
+
+/* 日历样式 */
+.ant-picker-calendar {
+  background: transparent !important;
+  border-radius: var(--claude-radius-md) !important;
+}
+
+.ant-picker-calendar .ant-picker-panel {
+  border: none !important;
+}
+
+.ant-picker-calendar .ant-picker-body {
+  padding: 4px 0 !important;
+}
+
+.ant-picker-calendar .ant-picker-content {
+  width: 100% !important;
+}
+
+.ant-picker-calendar .ant-picker-cell {
+  padding: 0 !important;
+}
+
+.ant-picker-calendar .ant-picker-cell-inner {
+  min-height: 36px !important;
+  color: var(--claude-text-primary) !important;
+  border-radius: var(--claude-radius-sm) !important;
+}
+
+.ant-picker-calendar .ant-picker-cell:hover .ant-picker-cell-inner {
+  background: var(--claude-primary-light) !important;
+}
+
+.ant-picker-calendar .ant-picker-cell-selected .ant-picker-cell-inner {
+  background: var(--claude-primary) !important;
+  color: var(--claude-text-inverse) !important;
+}
+
+.ant-picker-calendar .ant-picker-cell-in-view .ant-picker-cell-inner {
+  color: var(--claude-text-primary) !important;
+}
+
+/* 隐藏日历的快捷换月/换年箭头按钮 */
+.ant-picker-calendar .ant-picker-header .ant-picker-prev-btn,
+.ant-picker-calendar .ant-picker-header .ant-picker-next-btn,
+.ant-picker-calendar .ant-picker-header .ant-picker-header-super-prev-btn,
+.ant-picker-calendar .ant-picker-header .ant-picker-header-super-next-btn {
+  display: none !important;
+}
+
+/* 隐藏月/年视图切换按钮（Radio.Button 组） */
+.ant-picker-calendar .ant-picker-calendar-mode-switch {
+  display: none !important;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--claude-space-12) 0;
+  color: var(--claude-text-tertiary);
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  margin-bottom: var(--claude-space-4);
+  opacity: 0.5;
+}
+
+.empty-state-text {
+  font-size: 16px;
+  margin-bottom: var(--claude-space-6);
+}
+
+/* 快捷操作按钮 */
+.quick-action-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--claude-space-3);
+  padding: var(--claude-space-4) var(--claude-space-5);
+  background: var(--claude-card-bg);
+  border: 1px solid var(--claude-border);
+  border-radius: var(--claude-radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.quick-action-btn:hover {
+  border-color: var(--claude-primary);
+  background: var(--claude-primary-bg);
+  transform: translateY(-2px);
+  box-shadow: var(--claude-shadow-md);
+}
+
+.quick-action-btn-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--claude-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--claude-primary-light);
+  color: var(--claude-primary);
+  font-size: 18px;
+}
+
+.quick-action-btn-content {
+  flex: 1;
+}
+
+.quick-action-btn-title {
+  font-weight: 600;
+  color: var(--claude-text-primary);
+  margin-bottom: var(--claude-space-1);
+}
+
+.quick-action-btn-desc {
+  font-size: 13px;
+  color: var(--claude-text-secondary);
+}
+
+/* 表单样式 */
+.form-section {
+  background: var(--claude-card-bg);
+  border: 1px solid var(--claude-border);
+  border-radius: var(--claude-radius-md);
+  padding: var(--claude-space-6);
+  margin-bottom: var(--claude-space-6);
+}
+
+.form-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--claude-text-primary);
+  margin-bottom: var(--claude-space-5);
+  padding-bottom: var(--claude-space-3);
+  border-bottom: 1px solid var(--claude-border);
+}
+
+/* 标签颜色 */
+.tag-project {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 优先级标签 */
+.priority-low {
+  background: var(--claude-bg-secondary) !important;
+  color: var(--claude-text-secondary) !important;
+}
+
+.priority-medium {
+  background: var(--claude-info-bg) !important;
+  color: var(--claude-info) !important;
+}
+
+.priority-high {
+  background: var(--claude-warning-bg) !important;
+  color: var(--claude-warning) !important;
+}
+
+.priority-urgent {
+  background: var(--claude-error-bg) !important;
+  color: var(--claude-error) !important;
+}
+
+/* 状态标签 */
+.status-todo {
+  background: var(--claude-bg-secondary) !important;
+  color: var(--claude-text-secondary) !important;
+}
+
+.status-in_progress {
+  background: var(--claude-info-bg) !important;
+  color: var(--claude-info) !important;
+}
+
+.status-done {
+  background: var(--claude-success-bg) !important;
+  color: var(--claude-success) !important;
+}
+
+.status-cancelled {
+  background: var(--claude-error-bg) !important;
+  color: var(--claude-error) !important;
+}
+
+/* 心情颜色 */
+.mood-good {
+  color: var(--claude-success);
+}
+
+.mood-normal {
+  color: var(--claude-warning);
+}
+
+.mood-bad {
+  color: var(--claude-error);
+}
+
+/* 动画 */
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 拖拽样式 */
+.dragging {
+  opacity: 0.5;
+  background: var(--claude-primary-light);
+  border: 2px dashed var(--claude-primary);
+  border-radius: var(--claude-radius);
+}
+
+.drag-over {
+  border-top: 2px solid var(--claude-primary);
+}
+
+/* 选中效果 */
+.selected-item {
+  background: var(--claude-primary-light) !important;
+  border-left: 3px solid var(--claude-primary);
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none;
+  }
+
+  .page-title {
+    font-size: 20px;
+  }
+
+  .stat-card-value {
+    font-size: 24px;
+  }
+}
+
+/* 表格行操作 */
+.table-row-actions {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+tr:hover .table-row-actions {
+  opacity: 1;
+}
+
+/* 图表容器 */
+.chart-container {
+  background: var(--claude-card-bg);
+  border: 1px solid var(--claude-border);
+  border-radius: var(--claude-radius-md);
+  padding: var(--claude-space-5);
+}
+
+/* 分割线 */
+.section-divider {
+  height: 1px;
+  background: var(--claude-border);
+  margin: var(--claude-space-6) 0;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--claude-space-12);
+  color: var(--claude-text-tertiary);
+}
+
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--claude-border);
+  border-top-color: var(--claude-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: var(--claude-space-3);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 工具提示 */
+.ant-tooltip-inner {
+  background: var(--claude-text-primary) !important;
+  border-radius: var(--claude-radius-sm) !important;
+  font-size: 13px !important;
+}
+
+.ant-tooltip-arrow::before {
+  background: var(--claude-text-primary) !important;
+}

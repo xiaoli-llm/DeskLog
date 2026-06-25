@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+desk-log/
+
+# Build outputs
+out/
+release/
+dist/
+
+# IDE / AI
+.vscode/
+.idea/
+*.swp
+*.swo
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+
+# SQLite database (user data)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Temporary files
+*.tmp
+*.temp
