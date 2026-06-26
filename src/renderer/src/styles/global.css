@@ -809,11 +809,6 @@ body {
 
 /* 表格行操作 */
 .table-row-actions {
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-tr:hover .table-row-actions {
   opacity: 1;
 }
 
