@@ -82,7 +82,7 @@ const Projects: React.FC = () => {
 
   // 任务状态标签
   const taskStatusConfig: Record<string, { color: string; label: string }> = {
-    todo: { color: 'default', label: '待办' },
+    todo: { color: 'processing', label: '进行中' },
     in_progress: { color: 'processing', label: '进行中' },
     done: { color: 'success', label: '已完成' },
     cancelled: { color: 'error', label: '已取消' }

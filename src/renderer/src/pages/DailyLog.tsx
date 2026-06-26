@@ -440,10 +440,7 @@ const DailyLog: React.FC = () => {
                   完成 <strong style={{ color: 'var(--claude-success)' }}>{doneTasks.length}</strong> 个
                 </span>
                 <span style={{ color: 'var(--claude-text-secondary)' }}>
-                  进行中 <strong style={{ color: 'var(--claude-info)' }}>{inProgressTasks.length}</strong> 个
-                </span>
-                <span style={{ color: 'var(--claude-text-secondary)' }}>
-                  待办 <strong style={{ color: 'var(--claude-warning)' }}>{todoTasks.length}</strong> 个
+                  进行中 <strong style={{ color: 'var(--claude-info)' }}>{todayTasks.length - doneTasks.length}</strong> 个
                 </span>
               </div>
             )}
