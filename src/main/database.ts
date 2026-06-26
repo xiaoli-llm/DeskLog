@@ -73,6 +73,7 @@ export class TaskDatabase {
         description TEXT,
         priority TEXT DEFAULT 'medium' CHECK(priority IN ('low', 'medium', 'high', 'urgent')),
         status TEXT DEFAULT 'todo' CHECK(status IN ('todo', 'in_progress', 'done', 'cancelled')),
+        is_permanent INTEGER DEFAULT 0,
         due_date DATE,
         completed_at DATETIME,
         estimated_hours REAL,
@@ -83,6 +84,13 @@ export class TaskDatabase {
         FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
       )
     `)
+
+    // 迁移：如果 tasks 表已存在但没有 is_permanent 列，添加它
+    try {
+      this.db.run('SELECT is_permanent FROM tasks LIMIT 1')
+    } catch {
+      this.db.run('ALTER TABLE tasks ADD COLUMN is_permanent INTEGER DEFAULT 0')
+    }
 
     this.db.run(`
       CREATE TABLE IF NOT EXISTS daily_logs (
@@ -270,15 +278,15 @@ export class TaskDatabase {
     await this.ensureReady()
     if (!this.db) throw new Error('数据库未初始化')
     this.db.run(
-      `INSERT INTO tasks (project_id, title, description, priority, status, due_date, estimated_hours, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [task.project_id || null, task.title, task.description || null, task.priority || 'medium', task.status || 'todo', task.due_date || null, task.estimated_hours || null, task.sort_order || 0]
+      `INSERT INTO tasks (project_id, title, description, priority, status, is_permanent, due_date, estimated_hours, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [task.project_id || null, task.title, task.description || null, task.priority || 'medium', task.status || 'todo', task.is_permanent || 0, task.due_date || null, task.estimated_hours || null, task.sort_order || 0]
     )
     // 必须在 save() 之前获取 last_insert_rowid
     const id = this.getLastInsertRowId()
     const created = await this.getTask(id)
     this.save()
     if (!created) {
-      return { id, project_id: task.project_id || null, title: task.title || '', description: task.description || null, priority: task.priority || 'medium', status: task.status || 'todo', due_date: task.due_date || null, completed_at: null, estimated_hours: task.estimated_hours || null, actual_hours: null, sort_order: task.sort_order || 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+      return { id, project_id: task.project_id || null, title: task.title || '', description: task.description || null, priority: task.priority || 'medium', status: task.status || 'todo', is_permanent: task.is_permanent || 0, due_date: task.due_date || null, completed_at: null, estimated_hours: task.estimated_hours || null, actual_hours: null, sort_order: task.sort_order || 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
     }
     return created
   }
@@ -293,6 +301,7 @@ export class TaskDatabase {
     if (task.title !== undefined) { fields.push('title = ?'); values.push(task.title) }
     if (task.description !== undefined) { fields.push('description = ?'); values.push(task.description) }
     if (task.priority !== undefined) { fields.push('priority = ?'); values.push(task.priority) }
+    if (task.is_permanent !== undefined) { fields.push('is_permanent = ?'); values.push(task.is_permanent) }
     if (task.status !== undefined) {
       fields.push('status = ?')
       values.push(task.status)
@@ -312,7 +321,7 @@ export class TaskDatabase {
     const updated = await this.getTask(id)
     this.save()
     if (!updated) {
-      return { id, project_id: task.project_id || null, title: task.title || '', description: task.description || null, priority: task.priority || 'medium', status: task.status || 'todo', due_date: task.due_date || null, completed_at: null, estimated_hours: task.estimated_hours || null, actual_hours: task.actual_hours || null, sort_order: task.sort_order || 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+      return { id, project_id: task.project_id || null, title: task.title || '', description: task.description || null, priority: task.priority || 'medium', status: task.status || 'todo', is_permanent: task.is_permanent || 0, due_date: task.due_date || null, completed_at: null, estimated_hours: task.estimated_hours || null, actual_hours: task.actual_hours || null, sort_order: task.sort_order || 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
     }
     return updated
   }
@@ -336,6 +345,7 @@ export class TaskDatabase {
       if (task.title !== undefined) { fields.push('title = ?'); values.push(task.title) }
       if (task.description !== undefined) { fields.push('description = ?'); values.push(task.description) }
       if (task.priority !== undefined) { fields.push('priority = ?'); values.push(task.priority) }
+      if (task.is_permanent !== undefined) { fields.push('is_permanent = ?'); values.push(task.is_permanent) }
       if (task.status !== undefined) {
         fields.push('status = ?')
         values.push(task.status)

@@ -149,10 +149,10 @@ const Projects: React.FC = () => {
     const projectTasks = tasks.filter((t) => t.project_id === projectId)
     const total = projectTasks.length
     const completed = projectTasks.filter((t) => t.status === 'done').length
-    const inProgress = projectTasks.filter((t) => t.status === 'in_progress').length
-    const todo = projectTasks.filter((t) => t.status === 'todo').length
+    // 进行中 = in_progress + todo（两态逻辑，确保 completed + inProgress = total）
+    const inProgress = projectTasks.filter((t) => t.status !== 'done').length
 
-    return { total, completed, inProgress, todo, progress: total > 0 ? Math.round((completed / total) * 100) : 0 }
+    return { total, completed, inProgress, progress: total > 0 ? Math.round((completed / total) * 100) : 0 }
   }
 
   const statusColors: Record<string, string> = {

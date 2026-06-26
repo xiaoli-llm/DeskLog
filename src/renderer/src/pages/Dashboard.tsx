@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react'
-import { Row, Col, Card, Typography, Space, Button, Empty, Progress, Pagination, Tag, Checkbox } from 'antd'
+import { Row, Col, Card, Typography, Space, Button, Empty, Progress, Pagination, Tag, Checkbox, Modal, Form, Input, Select, message, Popconfirm } from 'antd'
 import {
   CheckCircleOutlined,
   ClockCircleOutlined,
@@ -11,7 +11,10 @@ import {
   FileTextOutlined,
   BarChartOutlined,
   RocketOutlined,
-  UnorderedListOutlined
+  UnorderedListOutlined,
+  PushpinOutlined,
+  EditOutlined,
+  DeleteOutlined
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useTaskStore } from '../stores/taskStore'
@@ -19,14 +22,32 @@ import { useProjectStore } from '../stores/projectStore'
 import dayjs from 'dayjs'
 
 const { Text } = Typography
+const { TextArea } = Input
+
+const priorityLabels: Record<string, string> = { low: '低', medium: '中', high: '高', urgent: '紧急' }
+const priorityColors: Record<string, string> = {
+  low: 'var(--claude-text-tertiary)',
+  medium: 'var(--claude-info)',
+  high: 'var(--claude-warning)',
+  urgent: 'var(--claude-error)'
+}
+const statusLabels: Record<string, string> = {
+  todo: '进行中', in_progress: '进行中', done: '已完成', cancelled: '已取消'
+}
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate()
-  const { tasks, fetchTasks } = useTaskStore()
+  const { tasks, fetchTasks, toggleTaskStatus, updateTask, deleteTask } = useTaskStore()
   const { projects, fetchProjects } = useProjectStore()
   const [todayTasks, setTodayTasks] = useState<any[]>([])
   const [allTasksPage, setAllTasksPage] = useState(1)
+  const [permPage, setPermPage] = useState(1)
+  const [editingTask, setEditingTask] = useState<any>(null)
+  const [editForm] = Form.useForm()
+  const [previewTask, setPreviewTask] = useState<any>(null)
+  const [previewProject, setPreviewProject] = useState<any>(null)
   const pageSize = 8
+  const permPageSize = 5
 
   useEffect(() => {
     const loadData = async () => {
@@ -41,17 +62,14 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     const today = dayjs().format('YYYY-MM-DD')
-    const filtered = tasks.filter((t) => t.due_date === today || t.status === 'in_progress')
+    const filtered = tasks.filter((t) => t.due_date === today && !t.is_permanent)
     setTodayTasks(filtered.slice(0, 5))
   }, [tasks])
 
-  // 分页后的全部任务
   const paginatedAllTasks = useMemo(() => {
     const sorted = [...tasks].sort((a, b) => {
-      // 未完成的在前，已完成的在后
       if (a.status === 'done' && b.status !== 'done') return 1
       if (a.status !== 'done' && b.status === 'done') return -1
-      // 按截止日期排序
       if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date)
       if (a.due_date) return -1
       if (b.due_date) return 1
@@ -61,11 +79,15 @@ const Dashboard: React.FC = () => {
     return sorted.slice(start, start + pageSize)
   }, [tasks, allTasksPage])
 
-  const completedTasks = tasks.filter((t) => t.status === 'done').length
-  const inProgressTasks = tasks.filter((t) => t.status === 'in_progress').length
-  const todoTasks = tasks.filter((t) => t.status === 'todo').length
-  const urgentTasks = tasks.filter((t) => t.priority === 'urgent' && t.status !== 'done').length
+  const permanentTasks = useMemo(() => tasks.filter((t) => t.is_permanent), [tasks])
+  const paginatedPermTasks = useMemo(() => {
+    const start = (permPage - 1) * permPageSize
+    return permanentTasks.slice(start, start + permPageSize)
+  }, [permanentTasks, permPage])
 
+  const completedTasks = tasks.filter((t) => t.status === 'done').length
+  const inProgressTasks = tasks.filter((t) => t.status !== 'done').length
+  const urgentTasks = tasks.filter((t) => t.priority === 'urgent' && t.status !== 'done').length
   const activeProjects = projects.filter((p) => p.status === 'active')
 
   const getProjectProgress = (projectId: number) => {
@@ -75,18 +97,75 @@ const Dashboard: React.FC = () => {
     return Math.round((completed / projectTasks.length) * 100)
   }
 
-  const priorityColors: Record<string, string> = {
-    low: 'var(--claude-text-tertiary)',
-    medium: 'var(--claude-info)',
-    high: 'var(--claude-warning)',
-    urgent: 'var(--claude-error)'
+  const handleEditPermanent = async (values: any) => {
+    if (!editingTask) return
+    try {
+      await updateTask(editingTask.id, { title: values.title, description: values.description, priority: values.priority })
+      message.success('任务更新成功')
+      setEditingTask(null)
+      editForm.resetFields()
+    } catch (error) { message.error('更新失败') }
   }
 
-  const statusLabels: Record<string, string> = {
-    todo: '待办',
-    in_progress: '进行中',
-    done: '已完成',
-    cancelled: '已取消'
+  const handleDeletePermanent = async (id: number) => {
+    try {
+      await deleteTask(id)
+      message.success('任务删除成功')
+    } catch (error) { message.error('删除失败') }
+  }
+
+  // 任务预览弹窗内容
+  const TaskPreviewContent = ({ task }: { task: any }) => (
+    <div>
+      <div style={{ marginBottom: 12 }}><Text type="secondary">标题</Text><br /><Text strong>{task.title}</Text></div>
+      {task.description && <div style={{ marginBottom: 12 }}><Text type="secondary">描述</Text><br /><Text>{task.description}</Text></div>}
+      <Row gutter={16}>
+        <Col span={8}><Text type="secondary">优先级</Text><br /><Tag color={task.priority === 'urgent' ? 'red' : task.priority === 'high' ? 'orange' : task.priority === 'medium' ? 'blue' : 'default'}>{priorityLabels[task.priority]}</Tag></Col>
+        <Col span={8}><Text type="secondary">状态</Text><br /><Tag color={task.status === 'done' ? 'success' : 'processing'}>{statusLabels[task.status]}</Tag></Col>
+        <Col span={8}><Text type="secondary">类型</Text><br /><Tag color={task.is_permanent ? 'purple' : 'default'}>{task.is_permanent ? '常驻任务' : '今日任务'}</Tag></Col>
+      </Row>
+      <Row gutter={16} style={{ marginTop: 12 }}>
+        <Col span={12}><Text type="secondary">截止日期</Text><br /><Text>{task.due_date ? dayjs(task.due_date).format('YYYY-MM-DD') : '无'}</Text></Col>
+        <Col span={12}><Text type="secondary">所属项目</Text><br /><Text>{task.project_id ? (projects.find(p => p.id === task.project_id)?.name || '未知') : '无'}</Text></Col>
+      </Row>
+      <Row gutter={16} style={{ marginTop: 12 }}>
+        <Col span={12}><Text type="secondary">创建时间</Text><br /><Text style={{ fontSize: 13 }}>{task.created_at ? dayjs(task.created_at).format('YYYY-MM-DD HH:mm') : '-'}</Text></Col>
+        {task.estimated_hours ? <Col span={12}><Text type="secondary">预计工时</Text><br /><Text>{task.estimated_hours}小时</Text></Col> : null}
+      </Row>
+    </div>
+  )
+
+  // 项目预览弹窗内容
+  const ProjectPreviewContent = ({ project }: { project: any }) => {
+    const projectTasks = tasks.filter((t) => t.project_id === project.id)
+    const completed = projectTasks.filter((t) => t.status === 'done').length
+    return (
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <div style={{ width: 12, height: 12, borderRadius: '50%', background: project.color }} />
+          <Text strong style={{ fontSize: 16 }}>{project.name}</Text>
+        </div>
+        {project.description && <div style={{ marginBottom: 12 }}><Text type="secondary">{project.description}</Text></div>}
+        <Row gutter={16} style={{ marginBottom: 12 }}>
+          <Col span={8}><Text type="secondary">状态</Text><br /><Tag color="blue">{project.status === 'active' ? '进行中' : project.status === 'completed' ? '已完成' : '已归档'}</Tag></Col>
+          <Col span={8}><Text type="secondary">总任务</Text><br /><Text strong>{projectTasks.length}</Text></Col>
+          <Col span={8}><Text type="secondary">已完成</Text><br /><Text strong style={{ color: 'var(--claude-success)' }}>{completed}</Text></Col>
+        </Row>
+        <Progress percent={getProjectProgress(project.id)} strokeColor={project.color} style={{ marginBottom: 12 }} />
+        {projectTasks.length > 0 && (
+          <>
+            <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>项目任务</Text>
+            {projectTasks.map((t) => (
+              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid var(--claude-border)' }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: t.status === 'done' ? 'var(--claude-success)' : 'var(--claude-info)' }} />
+                <Text style={{ flex: 1, textDecoration: t.status === 'done' ? 'line-through' : 'none', color: t.status === 'done' ? 'var(--claude-text-tertiary)' : 'var(--claude-text-primary)' }}>{t.title}</Text>
+                <Tag color={t.status === 'done' ? 'success' : 'processing'} style={{ fontSize: 11 }}>{statusLabels[t.status]}</Tag>
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -137,6 +216,148 @@ const Dashboard: React.FC = () => {
         </Col>
       </Row>
 
+      {/* 常驻任务 - 始终显示 */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+        <Col span={24}>
+          <Card
+            title={
+              <Space>
+                <PushpinOutlined style={{ color: '#b37feb' }} />
+                <Text strong>常驻任务</Text>
+                <Tag color="purple">{permanentTasks.length}</Tag>
+              </Space>
+            }
+            style={{ borderColor: '#d3adf7' }}
+          >
+            {permanentTasks.length > 0 ? (
+              <>
+                {paginatedPermTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className="task-item"
+                    style={{
+                      padding: '10px 12px',
+                      borderBottom: '1px solid var(--claude-border)',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => toggleTaskStatus(task.id)}
+                  >
+                    <Checkbox
+                      checked={task.status === 'done'}
+                      style={{ pointerEvents: 'none' }}
+                    />
+                    <div
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        background: task.status === 'done' ? 'var(--claude-success)' : '#b37feb',
+                        flexShrink: 0,
+                      }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <span
+                        className="task-title"
+                        style={{
+                          textDecoration: task.status === 'done' ? 'line-through' : 'none',
+                          color: task.status === 'done' ? 'var(--claude-text-tertiary)' : 'var(--claude-text-primary)',
+                        }}
+                      >
+                        {task.title}
+                      </span>
+                    </div>
+                    <Tag
+                      color={task.status === 'done' ? 'success' : 'purple'}
+                      style={{ fontSize: 12, marginRight: 8 }}
+                    >
+                      {task.status === 'done' ? '已完成' : '进行中'}
+                    </Tag>
+                    <Space size="small" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        type="text"
+                        size="small"
+                        style={{ color: '#b37feb' }}
+                        icon={<EditOutlined style={{ color: '#b37feb' }} />}
+                        onClick={() => {
+                          setEditingTask(task)
+                          editForm.setFieldsValue({
+                            title: task.title,
+                            description: task.description,
+                            priority: task.priority
+                          })
+                        }}
+                      />
+                      <Popconfirm
+                        title="确定删除此常驻任务？"
+                        onConfirm={() => handleDeletePermanent(task.id)}
+                      >
+                        <Button
+                          type="text"
+                          size="small"
+                          style={{ color: '#b37feb' }}
+                          icon={<DeleteOutlined style={{ color: '#b37feb' }} />}
+                        />
+                      </Popconfirm>
+                    </Space>
+                  </div>
+                ))}
+                {permanentTasks.length > permPageSize && (
+                  <div style={{ marginTop: 12, textAlign: 'center' }}>
+                    <Pagination
+                      current={permPage}
+                      pageSize={permPageSize}
+                      total={permanentTasks.length}
+                      onChange={(page) => setPermPage(page)}
+                      showSizeChanger={false}
+                      size="small"
+                    />
+                  </div>
+                )}
+              </>
+            ) : (
+              <Empty
+                description="暂无常驻任务"
+                style={{ padding: '24px 0' }}
+              >
+                <Text type="secondary">在每日日志中添加任务时勾选"常驻任务"即可创建</Text>
+              </Empty>
+            )}
+          </Card>
+        </Col>
+      </Row>
+
+      {/* 常驻任务编辑弹窗 */}
+      <Modal
+        title="编辑常驻任务"
+        open={!!editingTask}
+        onCancel={() => { setEditingTask(null); editForm.resetFields() }}
+        onOk={() => editForm.submit()}
+        okText="保存"
+        cancelText="取消"
+      >
+        <Form
+          form={editForm}
+          layout="vertical"
+          onFinish={handleEditPermanent}
+          style={{ marginTop: 16 }}
+        >
+          <Form.Item name="title" label="任务标题" rules={[{ required: true, message: '请输入标题' }]}>
+            <Input placeholder="请输入任务标题" />
+          </Form.Item>
+          <Form.Item name="description" label="任务描述">
+            <TextArea rows={2} placeholder="任务描述（可选）" />
+          </Form.Item>
+          <Form.Item name="priority" label="优先级">
+            <Select>
+              <Select.Option value="low">低</Select.Option>
+              <Select.Option value="medium">中</Select.Option>
+              <Select.Option value="high">高</Select.Option>
+              <Select.Option value="urgent">紧急</Select.Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
+
       <Row gutter={[16, 16]}>
         {/* 今日任务 */}
         <Col xs={24} lg={14}>
@@ -161,25 +382,10 @@ const Dashboard: React.FC = () => {
             {todayTasks.length > 0 ? (
               <div>
                 {todayTasks.map((task) => (
-                  <div key={task.id} className="task-item">
-                    <div
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        background: priorityColors[task.priority],
-                        flexShrink: 0,
-                      }}
-                    />
+                  <div key={task.id} className="task-item" style={{ cursor: 'pointer' }} onClick={() => setPreviewTask(task)}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: priorityColors[task.priority], flexShrink: 0 }} />
                     <span className="task-title">{task.title}</span>
-                    <span
-                      className={`status-${task.status}`}
-                      style={{
-                        fontSize: 12,
-                        padding: '2px 8px',
-                        borderRadius: 'var(--claude-radius-sm)',
-                      }}
-                    >
+                    <span className={`status-${task.status}`} style={{ fontSize: 12, padding: '2px 8px', borderRadius: 'var(--claude-radius-sm)' }}>
                       {statusLabels[task.status]}
                     </span>
                   </div>
@@ -225,28 +431,13 @@ const Dashboard: React.FC = () => {
             {activeProjects.length > 0 ? (
               <div>
                 {activeProjects.slice(0, 4).map((project) => (
-                  <div key={project.id} style={{ marginBottom: 16 }}>
+                  <div key={project.id} style={{ marginBottom: 16, cursor: 'pointer', padding: '8px', borderRadius: 'var(--claude-radius)', transition: 'background 0.2s' }} onClick={() => setPreviewProject(project)}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <div
-                        style={{
-                          width: 10,
-                          height: 10,
-                          borderRadius: '50%',
-                          background: project.color,
-                        }}
-                      />
+                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: project.color }} />
                       <Text strong style={{ fontSize: 14 }}>{project.name}</Text>
-                      <Text type="secondary" style={{ marginLeft: 'auto', fontSize: 13 }}>
-                        {getProjectProgress(project.id)}%
-                      </Text>
+                      <Text type="secondary" style={{ marginLeft: 'auto', fontSize: 13 }}>{getProjectProgress(project.id)}%</Text>
                     </div>
-                    <Progress
-                      percent={getProjectProgress(project.id)}
-                      showInfo={false}
-                      strokeColor={project.color}
-                      trailColor="var(--claude-bg-secondary)"
-                      size="small"
-                    />
+                    <Progress percent={getProjectProgress(project.id)} showInfo={false} strokeColor={project.color} trailColor="var(--claude-bg-secondary)" size="small" />
                   </div>
                 ))}
               </div>
@@ -295,46 +486,22 @@ const Dashboard: React.FC = () => {
                   <div
                     key={task.id}
                     className="task-item"
-                    style={{
-                      padding: '10px 12px',
-                      borderBottom: '1px solid var(--claude-border)',
-                    }}
+                    style={{ padding: '10px 12px', borderBottom: '1px solid var(--claude-border)', cursor: 'pointer' }}
+                    onClick={() => setPreviewTask(task)}
                   >
                     <Checkbox checked={task.status === 'done'} disabled />
-                    <div
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        background: priorityColors[task.priority],
-                        flexShrink: 0,
-                      }}
-                    />
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: priorityColors[task.priority], flexShrink: 0 }} />
                     <div style={{ flex: 1 }}>
-                      <span
-                        className="task-title"
-                        style={{
-                          textDecoration: task.status === 'done' ? 'line-through' : 'none',
-                          color: task.status === 'done' ? 'var(--claude-text-tertiary)' : 'var(--claude-text-primary)',
-                        }}
-                      >
+                      <span className="task-title" style={{ textDecoration: task.status === 'done' ? 'line-through' : 'none', color: task.status === 'done' ? 'var(--claude-text-tertiary)' : 'var(--claude-text-primary)' }}>
                         {task.title}
+                        {task.is_permanent ? <Tag color="purple" style={{ fontSize: 11, marginLeft: 6 }}>常驻</Tag> : null}
                       </span>
                       <div style={{ fontSize: 12, color: 'var(--claude-text-tertiary)', marginTop: 2 }}>
                         {task.due_date ? dayjs(task.due_date).format('YYYY-MM-DD') : '无截止日期'}
-                        {task.project_id && (
-                          <span style={{ marginLeft: 8 }}>
-                            {projects.find(p => p.id === task.project_id)?.name || '未知项目'}
-                          </span>
-                        )}
+                        {task.project_id && <span style={{ marginLeft: 8 }}>{projects.find(p => p.id === task.project_id)?.name || '未知项目'}</span>}
                       </div>
                     </div>
-                    <Tag
-                      color={task.status === 'done' ? 'success' : task.status === 'in_progress' ? 'processing' : 'default'}
-                      style={{ fontSize: 12 }}
-                    >
-                      {statusLabels[task.status]}
-                    </Tag>
+                    <Tag color={task.status === 'done' ? 'success' : 'processing'} style={{ fontSize: 12 }}>{statusLabels[task.status]}</Tag>
                   </div>
                 ))}
                 {tasks.length > pageSize && (
@@ -418,6 +585,27 @@ const Dashboard: React.FC = () => {
           </Col>
         </Row>
       </div>
+      {/* 任务预览弹窗 */}
+      <Modal
+        title="任务详情"
+        open={!!previewTask}
+        onCancel={() => setPreviewTask(null)}
+        footer={<Button onClick={() => setPreviewTask(null)}>关闭</Button>}
+        width={500}
+      >
+        {previewTask && <TaskPreviewContent task={previewTask} />}
+      </Modal>
+
+      {/* 项目预览弹窗 */}
+      <Modal
+        title="项目详情"
+        open={!!previewProject}
+        onCancel={() => setPreviewProject(null)}
+        footer={<Button onClick={() => setPreviewProject(null)}>关闭</Button>}
+        width={560}
+      >
+        {previewProject && <ProjectPreviewContent project={previewProject} />}
+      </Modal>
     </div>
   )
 }

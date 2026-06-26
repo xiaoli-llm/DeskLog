@@ -81,9 +81,8 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   toggleTaskStatus: async (id) => {
     const task = get().tasks.find((t) => t.id === id)
     if (!task) return
-    // done/cancelled → todo，其他 → done
-    const newStatus: TaskStatus =
-      task.status === 'done' || task.status === 'cancelled' ? 'todo' : 'done'
+    // 所有任务统一：in_progress/todo ↔ done（两态切换）
+    const newStatus: TaskStatus = task.status === 'done' ? 'in_progress' : 'done'
     try {
       await get().updateTask(id, { status: newStatus })
     } catch (error) {

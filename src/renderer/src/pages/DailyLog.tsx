@@ -16,7 +16,9 @@ import {
   Row,
   Col,
   Tooltip,
-  Popconfirm
+  Popconfirm,
+  Switch,
+  Tag
 } from 'antd'
 import {
   PlusOutlined,
@@ -143,9 +145,9 @@ const DailyLog: React.FC = () => {
     setSelectedDate(date.format('YYYY-MM-DD'))
   }
 
-  // 当前选中日期的任务
+  // 当前选中日期的任务（排除常驻任务，常驻任务在工作台展示）
   const todayTasks = useMemo(
-    () => tasks.filter((t) => t.due_date === selectedDate),
+    () => tasks.filter((t) => t.due_date === selectedDate && !t.is_permanent),
     [tasks, selectedDate]
   )
 
@@ -196,9 +198,13 @@ const DailyLog: React.FC = () => {
     if (submitting) return
     setSubmitting(true)
     try {
+      const isPermanent = values.is_permanent ? 1 : 0
       await createTask({
         ...values,
-        due_date: selectedDate,
+        is_permanent: isPermanent,
+        // 所有任务默认状态为 in_progress（两态逻辑）
+        status: 'in_progress',
+        due_date: isPermanent ? undefined : selectedDate,
         estimated_hours: values.estimated_hours ? Number(values.estimated_hours) : undefined
       })
       message.success('任务创建成功')
@@ -220,6 +226,7 @@ const DailyLog: React.FC = () => {
     try {
       await updateTask(editingTask.id, {
         ...values,
+        is_permanent: values.is_permanent ? 1 : 0,
         estimated_hours: values.estimated_hours ? Number(values.estimated_hours) : undefined
       })
       message.success('任务更新成功')
@@ -291,51 +298,42 @@ const DailyLog: React.FC = () => {
     bad: <FrownOutlined />
   }
 
+  // 任务预览弹窗状态
+  const [previewTask, setPreviewTask] = useState<Task | null>(null)
+
   // 任务列表组件
   const TaskList: React.FC<{ tasks: Task[] }> = ({ tasks }) => (
     <div>
       {tasks.map((task) => (
-        <div key={task.id} className={`task-item ${task.status === 'done' ? 'completed' : ''}`}>
-          <Checkbox
-            checked={task.status === 'done'}
-            onChange={() => handleToggleStatus(task)}
-          />
-          <div
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: '50%',
-              background: priorityColors[task.priority],
-              flexShrink: 0,
-            }}
-          />
+        <div key={task.id} className={`task-item ${task.status === 'done' ? 'completed' : ''}`} style={{ cursor: 'pointer' }}
+          onClick={() => setPreviewTask(task)}
+        >
+          <div onClick={(e) => { e.stopPropagation(); handleToggleStatus(task) }}>
+            <Checkbox checked={task.status === 'done'} style={{ pointerEvents: 'none' }} />
+          </div>
+          <div style={{ width: 6, height: 6, borderRadius: '50%', background: priorityColors[task.priority], flexShrink: 0 }} />
           <span className="task-title">{task.title}</span>
-          <Space size="small" className="table-row-actions">
+          <Space size="small" className="table-row-actions" onClick={(e) => e.stopPropagation()}>
             <Button
-              type="text"
-              size="small"
-              icon={<EditOutlined />}
+              type="text" size="small"
+              style={{ color: '#b37feb' }}
+              icon={<EditOutlined style={{ color: '#b37feb' }} />}
               onClick={() => {
                 setEditingTask(task)
-                form.setFieldsValue(task)
+                form.setFieldsValue({ ...task, is_permanent: !!task.is_permanent })
               }}
             />
-            <Popconfirm
-              title="确定删除此任务？"
-              onConfirm={() => handleDeleteTask(task.id)}
-            >
-              <Button
-                type="text"
-                size="small"
-                style={{ color: '#b37feb' }}
-                icon={<DeleteOutlined style={{ color: '#b37feb' }} />}
-              />
+            <Popconfirm title="确定删除此任务？" onConfirm={() => handleDeleteTask(task.id)}>
+              <Button type="text" size="small" style={{ color: '#b37feb' }} icon={<DeleteOutlined style={{ color: '#b37feb' }} />} />
             </Popconfirm>
           </Space>
         </div>
       ))}
     </div>
   )
+
+  const priorityLabels: Record<string, string> = { low: '低', medium: '中', high: '高', urgent: '紧急' }
+  const statusLabelsMap: Record<string, string> = { todo: '进行中', in_progress: '进行中', done: '已完成', cancelled: '已取消' }
 
   return (
     <div className="fade-in">
@@ -406,12 +404,14 @@ const DailyLog: React.FC = () => {
                 type="primary"
                 icon={<PlusOutlined />}
                 onClick={() => setShowAddModal(true)}
+                style={{ background: '#b37feb', borderColor: '#b37feb' }}
               >
                 添加任务
               </Button>
               <Button
                 icon={<SaveOutlined />}
                 onClick={handleSaveLog}
+                style={{ color: '#b37feb', borderColor: '#b37feb' }}
               >
                 保存日志
               </Button>
@@ -462,6 +462,7 @@ const DailyLog: React.FC = () => {
                   type="primary"
                   icon={<PlusOutlined />}
                   onClick={() => setShowAddModal(true)}
+                  style={{ background: '#b37feb', borderColor: '#b37feb' }}
                 >
                   添加第一个任务
                 </Button>
@@ -595,7 +596,47 @@ const DailyLog: React.FC = () => {
               </Form.Item>
             </Col>
           </Row>
+          <Form.Item
+            name="is_permanent"
+            label="常驻任务"
+            valuePropName="checked"
+            extra="常驻任务会显示在工作台，方便快速切换完成状态"
+          >
+            <Switch
+              checkedChildren="是"
+              unCheckedChildren="否"
+            />
+          </Form.Item>
         </Form>
+      </Modal>
+
+      {/* 任务预览弹窗 */}
+      <Modal
+        title="任务详情"
+        open={!!previewTask}
+        onCancel={() => setPreviewTask(null)}
+        footer={<Button onClick={() => setPreviewTask(null)}>关闭</Button>}
+        width={500}
+      >
+        {previewTask && (
+          <div>
+            <div style={{ marginBottom: 12 }}><Text type="secondary">标题</Text><br /><Text strong>{previewTask.title}</Text></div>
+            {previewTask.description && <div style={{ marginBottom: 12 }}><Text type="secondary">描述</Text><br /><Text>{previewTask.description}</Text></div>}
+            <Row gutter={16}>
+              <Col span={8}><Text type="secondary">优先级</Text><br /><Tag color={previewTask.priority === 'urgent' ? 'red' : previewTask.priority === 'high' ? 'orange' : previewTask.priority === 'medium' ? 'blue' : 'default'}>{priorityLabels[previewTask.priority]}</Tag></Col>
+              <Col span={8}><Text type="secondary">状态</Text><br /><Tag color={previewTask.status === 'done' ? 'success' : 'processing'}>{statusLabelsMap[previewTask.status]}</Tag></Col>
+              <Col span={8}><Text type="secondary">类型</Text><br /><Tag color={previewTask.is_permanent ? 'purple' : 'default'}>{previewTask.is_permanent ? '常驻任务' : '今日任务'}</Tag></Col>
+            </Row>
+            <Row gutter={16} style={{ marginTop: 12 }}>
+              <Col span={12}><Text type="secondary">截止日期</Text><br /><Text>{previewTask.due_date ? dayjs(previewTask.due_date).format('YYYY-MM-DD') : '无'}</Text></Col>
+              <Col span={12}><Text type="secondary">所属项目</Text><br /><Text>{previewTask.project_id ? (projects.find(p => p.id === previewTask.project_id)?.name || '未知') : '无'}</Text></Col>
+            </Row>
+            <Row gutter={16} style={{ marginTop: 12 }}>
+              <Col span={12}><Text type="secondary">创建时间</Text><br /><Text style={{ fontSize: 13 }}>{previewTask.created_at ? dayjs(previewTask.created_at).format('YYYY-MM-DD HH:mm') : '-'}</Text></Col>
+              {previewTask.estimated_hours ? <Col span={12}><Text type="secondary">预计工时</Text><br /><Text>{previewTask.estimated_hours}小时</Text></Col> : null}
+            </Row>
+          </div>
+        )}
       </Modal>
     </div>
   )

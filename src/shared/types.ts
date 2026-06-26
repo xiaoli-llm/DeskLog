@@ -35,6 +35,7 @@ export interface Task {
   description: string | null
   priority: TaskPriority
   status: TaskStatus
+  is_permanent: number  // 0 或 1，是否为常驻任务
   due_date: string | null
   completed_at: string | null
   estimated_hours: number | null
@@ -50,6 +51,7 @@ export interface CreateTaskDto {
   description?: string
   priority?: TaskPriority
   status?: TaskStatus
+  is_permanent?: number
   due_date?: string
   estimated_hours?: number
   sort_order?: number
@@ -61,6 +63,7 @@ export interface UpdateTaskDto {
   description?: string
   priority?: TaskPriority
   status?: TaskStatus
+  is_permanent?: number
   due_date?: string | null
   estimated_hours?: number | null
   actual_hours?: number | null

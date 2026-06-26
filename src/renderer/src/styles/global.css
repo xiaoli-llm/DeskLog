@@ -867,3 +867,17 @@ tr:hover .table-row-actions {
 .ant-tooltip-arrow::before {
   background: var(--claude-text-primary) !important;
 }
+
+/* 常驻任务开关 - 粉紫色 */
+.ant-switch-checked {
+  background: #b37feb !important;
+}
+
+/* 常驻任务卡片边框 */
+.permanent-task-card {
+  border-color: #d3adf7 !important;
+}
+
+.permanent-task-card:hover {
+  border-color: #b37feb !important;
+}
